@@ -17,7 +17,7 @@ public class Address {
     @Id
     private String id;
 
-    private String stree;
+    private String street;
 
     private String city;
 

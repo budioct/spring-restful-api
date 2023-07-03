@@ -21,8 +21,7 @@ CREATE TABLE users
 
 describe users;
 
-select *
-from users;
+select * from users;
 
 
 # table contacts berlasi dengan users dengan kardinalitas 1 users banyak contants. reference username
