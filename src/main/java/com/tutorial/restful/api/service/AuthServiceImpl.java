@@ -55,6 +55,15 @@ public class AuthServiceImpl implements AuthService {
         return System.currentTimeMillis() + (1000 * 16 * 24 * 2);
     }
 
+    @Transactional
+    public void logout(User user) {
+        // karena user yang login punya token dan tokenExpireAt kita tinggal replace saja
+        user.setToken(null);
+        user.setTokenExpiredAt(null);
+
+        userRepository.save(user);
+    }
+
 
 
 }

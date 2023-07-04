@@ -277,4 +277,143 @@ class AuthControllerTest {
 
     }
 
+    @Test
+    void testLogoutFailed() throws Exception {
+
+        mockMvc.perform(
+                delete("/api/auth/logout")
+                        .accept(MediaType.APPLICATION_JSON)
+        ).andExpectAll(
+                status().isUnauthorized()
+        ).andDo(result -> {
+            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+            assertNotNull(response.getErrors());
+        });
+
+        /**
+         * Response Body= {"data":null,"errors":"Unauthorized"}
+         * query result:
+         * Hibernate:
+         *     select
+         *         u1_0.username,
+         *         u1_0.name,
+         *         u1_0.password,
+         *         u1_0.token,
+         *         u1_0.token_expired_at
+         *     from
+         *         users u1_0
+         * Hibernate:
+         *     delete
+         *     from
+         *         users
+         *     where
+         *         username=?
+         */
+    }
+
+    @Test
+    void logoutSuccess() throws Exception {
+
+        User user = new User();
+        user.setUsername("test");
+        user.setName("budhi");
+        user.setPassword(BCrypt.hashpw("rahasia", BCrypt.gensalt()));
+        user.setToken("test");
+        user.setTokenExpiredAt(System.currentTimeMillis() + 10000000L);
+        userRepository.save(user);
+
+        mockMvc.perform(
+                delete("/api/auth/logout")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-API-TOKEN", "test")
+                        //.content(objectMapper.writeValueAsString(user))
+        ).andExpectAll(
+                status().isOk()
+        ).andDo(result -> {
+            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+
+            Assertions.assertNull(response.getErrors());
+            Assertions.assertEquals("OK", response.getData());
+
+            User userDb = userRepository.findById("test").orElse(null);
+            Assertions.assertNotNull(userDb);
+            Assertions.assertNull(userDb.getTokenExpiredAt());
+            Assertions.assertNull(userDb.getToken());
+        });
+
+        /**
+         * Response Body= {"data":"OK","errors":null}
+         * query result:
+         * Hibernate:
+         *     select
+         *         u1_0.username,
+         *         u1_0.name,
+         *         u1_0.password,
+         *         u1_0.token,
+         *         u1_0.token_expired_at
+         *     from
+         *         users u1_0
+         * Hibernate:
+         *     delete
+         *     from
+         *         users
+         *     where
+         *         username=?
+         * Hibernate:
+         *     select
+         *         u1_0.username,
+         *         u1_0.name,
+         *         u1_0.password,
+         *         u1_0.token,
+         *         u1_0.token_expired_at
+         *     from
+         *         users u1_0
+         *     where
+         *         u1_0.username=?
+         * Hibernate:
+         *     insert
+         *     into
+         *         users
+         *         (name, password, token, token_expired_at, username)
+         *     values
+         *         (?, ?, ?, ?, ?)
+         * Hibernate:
+         *     select
+         *         u1_0.username,
+         *         u1_0.name,
+         *         u1_0.password,
+         *         u1_0.token,
+         *         u1_0.token_expired_at
+         *     from
+         *         users u1_0
+         *     where
+         *         u1_0.token=? limit ?
+         * Hibernate:
+         *     update
+         *         users
+         *     set
+         *         name=?,
+         *         password=?,
+         *         token=?,
+         *         token_expired_at=?
+         *     where
+         *         username=?
+         * Hibernate:
+         *     select
+         *         u1_0.username,
+         *         u1_0.name,
+         *         u1_0.password,
+         *         u1_0.token,
+         *         u1_0.token_expired_at
+         *     from
+         *         users u1_0
+         *     where
+         *         u1_0.username=?
+         */
+    }
+
+
+
 }

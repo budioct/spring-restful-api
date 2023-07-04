@@ -3,9 +3,11 @@ package com.tutorial.restful.api.controller;
 import com.tutorial.restful.api.dto.LoginUserRequest;
 import com.tutorial.restful.api.dto.TokenResponse;
 import com.tutorial.restful.api.dto.WebResponse;
+import com.tutorial.restful.api.entity.User;
 import com.tutorial.restful.api.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,6 +28,18 @@ public class AuthController {
         TokenResponse tokenResponse = authService.login(request); // TokenResponse login(LoginUserRequest request)
 
         return WebResponse.<TokenResponse>builder().data(tokenResponse).build(); // return {"data":{"token":"2dd32768-9bd9-45ed-a60e-c5eb0e6521bd","expiredAt":1688437213465}}
+    }
+
+    @DeleteMapping(
+            path = "/api/auth/logout",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public WebResponse<String> logout(User user){
+
+        authService.logout(user); // void logout(User user)
+
+        return WebResponse.<String>builder().data("OK").build(); // return {"data":"OK","errors":null}
+
     }
 
 
