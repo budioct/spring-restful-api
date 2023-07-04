@@ -12,10 +12,10 @@ Request Body :
 
 ```json
 {
-  "firstName" : "Eko Kurniawan",
-  "lastName" : "Khannedy",
-  "email" : "eko@example.com",
-  "phone" : "0899889998"
+  "firstName" : "Budhi Octaviansyah",
+  "lastName" : "Budhi",
+  "email" : "budioct@example.com",
+  "phone" : "2342342343"
 }
 ```
 
@@ -25,10 +25,10 @@ Response Body (Success) :
 {
   "data": {
     "id" : "random-string",
-    "firstName": "Eko Kurniawan",
-    "lastName": "Khannedy",
-    "email": "eko@example.com",
-    "phone": "0899889998"
+    "firstName" : "Budhi Octaviansyah",
+    "lastName" : "Budhi",
+    "email" : "budioct@example.com",
+    "phone" : "2342342343"
   }
 }
 ```
@@ -53,10 +53,10 @@ Request Body :
 
 ```json
 {
-  "firstName" : "Eko Kurniawan",
-  "lastName" : "Khannedy",
-  "email" : "eko@example.com",
-  "phone" : "0899889998"
+  "firstName" : "Budhi Octaviansyah",
+  "lastName" : "Budhi",
+  "email" : "budioct@example.com",
+  "phone" : "2342342343"
 }
 ```
 
@@ -66,10 +66,10 @@ Response Body (Success) :
 {
   "data": {
     "id" : "random-string",
-    "firstName": "Eko Kurniawan",
-    "lastName": "Khannedy",
-    "email": "eko@example.com",
-    "phone": "0899889998"
+    "firstName" : "Budhi Octaviansyah",
+    "lastName" : "Budhi",
+    "email" : "budioct@example.com",
+    "phone" : "2342342343"
   }
 }
 ```
@@ -96,10 +96,10 @@ Response Body (Success) :
 {
   "data": {
     "id" : "random-string",
-    "firstName": "Eko Kurniawan",
-    "lastName": "Khannedy",
-    "email": "eko@example.com",
-    "phone": "0899889998"
+    "firstName" : "Budhi Octaviansyah",
+    "lastName" : "Budhi",
+    "email" : "budioct@example.com",
+    "phone" : "2342342343"
   }
 }
 ```
@@ -135,10 +135,10 @@ Response Body (Success) :
   "data": [
     {
       "id": "random-string",
-      "firstName": "Eko Kurniawan",
-      "lastName": "Khannedy",
-      "email": "eko@example.com",
-      "phone": "0899889998"
+      "firstName" : "Budhi Octaviansyah",
+      "lastName" : "Budhi",
+      "email" : "budioct@example.com",
+      "phone" : "2342342343"
     }
   ],
   "paging" : {

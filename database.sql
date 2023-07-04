@@ -39,8 +39,7 @@ CREATE TABLE contacts
 
 describe contacts;
 
-select *
-from contacts;
+select * from contacts;
 
 
 CREATE TABLE addresses
@@ -58,5 +57,4 @@ CREATE TABLE addresses
 
 describe addresses;
 
-select *
-from addresses;
+select * from addresses;

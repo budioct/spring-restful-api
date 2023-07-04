@@ -8,9 +8,9 @@ Request Body :
 
 ```json
 {
-  "username" : "khannedy",
+  "username" : "budhioct",
   "password" : "rahasia",
-  "name" : "Eko Kurniawan Khannedy" 
+  "name" : "Budhi octaviansyah" 
 }
 ```
 
@@ -38,7 +38,7 @@ Request Body :
 
 ```json
 {
-  "username" : "khannedy",
+  "username" : "budhioct",
   "password" : "rahasia" 
 }
 ```
@@ -75,8 +75,8 @@ Response Body (Success) :
 ```json
 {
   "data" : {
-    "username" : "khannedy",
-    "name" : "Eko Kurniawan Khannedy"
+    "username" : "budhioct",
+    "name" : "Budhi Octaviansyah"
   }
 }
 ```
@@ -101,7 +101,7 @@ Request Body :
 
 ```json
 {
-  "name" : "Eko Khannedy", // put if only want to update name
+  "name" : "budhioct1", // put if only want to update name
   "password" : "new password" // put if only want to update password
 }
 ```
@@ -111,8 +111,8 @@ Response Body (Success) :
 ```json
 {
   "data" : {
-    "username" : "khannedy",
-    "name" : "Eko Kurniawan Khannedy"
+    "username" : "budhioct",
+    "name" : "Budhi octaviansyah"
   }
 }
 ```
