@@ -2,6 +2,7 @@ package com.tutorial.restful.api.service;
 
 import com.tutorial.restful.api.Exception.ApiException;
 import com.tutorial.restful.api.dto.RegisterUserRequest;
+import com.tutorial.restful.api.dto.UpdateUserRequest;
 import com.tutorial.restful.api.dto.UserResponse;
 import com.tutorial.restful.api.entity.User;
 import com.tutorial.restful.api.repository.UserRepository;
@@ -11,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Objects;
 
 @Service
 public class UserServiceImpl implements UserService{
@@ -53,6 +56,37 @@ public class UserServiceImpl implements UserService{
                 .name(user.getName())
                 .build();
 
+    }
+
+    @Transactional
+    public UserResponse update(User user, UpdateUserRequest request) {
+
+        validationService.validate(request);
+
+        // cek apakah user dengan nama username sudah ada
+        // jika ada. tingal hasil Exception username sudah ada
+//        if (userRepository.existsById(request.getUsername())){
+//            // error
+//            // throw new ApiException("Username already registered");
+//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username already registered"); // ResponseStatusException(HttpStatusCode status, @Nullable String reason) // Konstruktor dengan status respons dan alasan untuk menambahkan pesan pengecualian sebagai penjelasan.
+//        }
+
+        // cek apakah userRequest name tidak null. jika iya binding dengan entity user.name
+        if (Objects.nonNull(request.getName())){
+            user.setName(request.getName());
+        }
+
+        // cek apakah userRequest password tidak null. jika iya binding dengan entity user.password
+        if (Objects.nonNull(request.getPassword())){
+            user.setPassword(BCrypt.hashpw(request.getPassword(), BCrypt.gensalt()));
+        }
+
+        userRepository.save(user); // save db
+
+        return UserResponse.builder()
+                .name(user.getName())
+                .username(user.getUsername())
+                .build(); // return UserResponse jika berhasil update
     }
 
 

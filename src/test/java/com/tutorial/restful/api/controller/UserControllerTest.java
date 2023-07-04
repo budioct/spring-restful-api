@@ -3,6 +3,7 @@ package com.tutorial.restful.api.controller;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tutorial.restful.api.dto.RegisterUserRequest;
+import com.tutorial.restful.api.dto.UpdateUserRequest;
 import com.tutorial.restful.api.dto.UserResponse;
 import com.tutorial.restful.api.dto.WebResponse;
 import com.tutorial.restful.api.entity.User;
@@ -464,6 +465,189 @@ class UserControllerTest {
          *     where
          *         u1_0.token=? limit ?
          */
+    }
+
+    @Test
+    void testUpdateUserNotBlank() throws Exception {
+
+        // data yang sudah ada di db
+        User user = new User();
+        user.setName("test");
+        user.setUsername("Test");
+        user.setPassword(BCrypt.hashpw("rahasia", BCrypt.gensalt()));
+        user.setToken("test");
+        user.setTokenExpiredAt(System.currentTimeMillis() + 10000000000L);
+        userRepository.save(user);
+
+        // request body json
+        UpdateUserRequest request = new UpdateUserRequest();
+        request.setName("");
+        request.setPassword("");
+
+        mockMvc.perform(
+                patch("/api/users/current")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .header("X-API-TOKEN", "test")
+        ).andExpectAll(
+                status().isBadRequest()
+        ).andDo(result -> {
+            WebResponse<UserResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+
+            Assertions.assertNotNull(response.getErrors());
+
+        });
+
+        /**
+         * Response Body: {"data":null,"errors":"password: must not be blank, name: must not be blank"}
+         * query result:
+         *
+         */
+
+    }
+
+    @Test
+    void testUpdateUserFailed() throws Exception {
+
+        // data yang sudah ada di db. tidak ada token test
+
+        // request body json
+        UpdateUserRequest request = new UpdateUserRequest();
+
+        mockMvc.perform(
+                patch("/api/users/current")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .header("X-API-TOKEN", "test")
+        ).andExpectAll(
+                status().isUnauthorized()
+        ).andDo(result -> {
+            WebResponse<UserResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+
+            Assertions.assertNotNull(response.getErrors());
+
+        });
+
+        /**
+         * Response Body: {"data":null,"errors":"Unauthorized"}
+         * query result:
+         */
+
+    }
+
+    @Test
+    void testUpdateUserSuccess() throws Exception {
+
+        // data yang sudah ada di db
+        User user = new User();
+        user.setUsername("Test");
+        user.setName("test");
+        user.setPassword(BCrypt.hashpw("rahasia", BCrypt.gensalt()));
+        user.setToken("test");
+        user.setTokenExpiredAt(System.currentTimeMillis() + 10000000000L);
+        userRepository.save(user);
+
+        // request body json
+        UpdateUserRequest request = new UpdateUserRequest();
+        request.setName("Budhi");
+        request.setPassword("budhi123123");
+
+        mockMvc.perform(
+                patch("/api/users/current")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .header("X-API-TOKEN", "test")
+        ).andExpectAll(
+                status().isOk()
+        ).andDo(result -> {
+            WebResponse<UserResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+
+            Assertions.assertNull(response.getErrors());
+            Assertions.assertEquals("Budhi", response.getData().getName());
+            Assertions.assertEquals("Test", response.getData().getUsername());
+
+            User userDB = userRepository.findById("test").orElse(null);
+            Assertions.assertNotNull(userDB);
+            Assertions.assertTrue(BCrypt.checkpw("budhi123123", userDB.getPassword()));
+
+        });
+
+        /**
+         * response Body = {"data":{"username":"Test","name":"Budhi"},"errors":null}
+         * query result:
+         * Hibernate:
+         *     select
+         *         u1_0.username,
+         *         u1_0.name,
+         *         u1_0.password,
+         *         u1_0.token,
+         *         u1_0.token_expired_at
+         *     from
+         *         users u1_0
+         * Hibernate:
+         *     delete
+         *     from
+         *         users
+         *     where
+         *         username=?
+         * Hibernate:
+         *     select
+         *         u1_0.username,
+         *         u1_0.name,
+         *         u1_0.password,
+         *         u1_0.token,
+         *         u1_0.token_expired_at
+         *     from
+         *         users u1_0
+         *     where
+         *         u1_0.username=?
+         * Hibernate:
+         *     insert
+         *     into
+         *         users
+         *         (name, password, token, token_expired_at, username)
+         *     values
+         *         (?, ?, ?, ?, ?)
+         * Hibernate:
+         *     select
+         *         u1_0.username,
+         *         u1_0.name,
+         *         u1_0.password,
+         *         u1_0.token,
+         *         u1_0.token_expired_at
+         *     from
+         *         users u1_0
+         *     where
+         *         u1_0.token=? limit ?
+         * Hibernate:
+         *     update
+         *         users
+         *     set
+         *         name=?,
+         *         password=?,
+         *         token=?,
+         *         token_expired_at=?
+         *     where
+         *         username=?
+         * Hibernate:
+         *     select
+         *         u1_0.username,
+         *         u1_0.name,
+         *         u1_0.password,
+         *         u1_0.token,
+         *         u1_0.token_expired_at
+         *     from
+         *         users u1_0
+         *     where
+         *         u1_0.username=?
+         */
+
     }
 
 }
