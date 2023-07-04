@@ -2,6 +2,7 @@ package com.tutorial.restful.api.service;
 
 import com.tutorial.restful.api.Exception.ApiException;
 import com.tutorial.restful.api.dto.RegisterUserRequest;
+import com.tutorial.restful.api.dto.UserResponse;
 import com.tutorial.restful.api.entity.User;
 import com.tutorial.restful.api.repository.UserRepository;
 import com.tutorial.restful.api.security.BCrypt;
@@ -41,7 +42,18 @@ public class UserServiceImpl implements UserService{
 
     }
 
+    @Override
+    public UserResponse get(User user) {
 
+        // karena hanya get saha kita tidak perlu merubah behaviornya
+        // argument sudah di resolver jadi tidak perlu @Request header, @RequestParam, dll
+
+        return UserResponse.builder()
+                .username(user.getUsername())
+                .name(user.getName())
+                .build();
+
+    }
 
 
 }
