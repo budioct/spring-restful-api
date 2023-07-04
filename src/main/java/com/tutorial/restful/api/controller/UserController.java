@@ -22,7 +22,8 @@ public class UserController {
     )
     public WebResponse<String> userRegister(@RequestBody RegisterUserRequest request) {
 
-        userService.register(request);
+        userService.register(request); // void register(RegisterUserRequest request)
+
         return WebResponse.<String>builder().data("OK").build(); // return {data : Oke}
 
     }
