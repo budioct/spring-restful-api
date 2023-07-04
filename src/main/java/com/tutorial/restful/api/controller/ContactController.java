@@ -7,9 +7,7 @@ import com.tutorial.restful.api.entity.User;
 import com.tutorial.restful.api.service.ContactService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class ContactController {
@@ -26,8 +24,22 @@ public class ContactController {
 
         ContactResponse contactResponse = contactService.create(user, request); // ContactResponse create(User user, CreateContactRequest request)
 
+        return WebResponse.<ContactResponse>builder().data(contactResponse).build(); // return {"data":{"id":"91a6efb6-3c6f-4e4c-bafd-051b9410d1ce","firstName":"budhi oct","lastName":"octaviansyah","email":"budioct@contoh.com","phone":"08999912222"},"errors":null}
+
+    }
+
+    @GetMapping(
+            path = "/api/contacts/{contactId}",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public WebResponse<ContactResponse> get(User user, @PathVariable(name = "contactId") String id){
+
+        ContactResponse contactResponse = contactService.get(user, id);
+
         return WebResponse.<ContactResponse>builder().data(contactResponse).build(); // return
 
     }
+
 
 }

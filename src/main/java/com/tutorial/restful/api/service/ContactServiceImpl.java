@@ -6,8 +6,10 @@ import com.tutorial.restful.api.entity.Contact;
 import com.tutorial.restful.api.entity.User;
 import com.tutorial.restful.api.repository.ContactRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
 
@@ -35,6 +37,11 @@ public class ContactServiceImpl implements ContactService {
 
         contactRepository.save(contact); // save DB
 
+        return toContactResponse(contact);
+    }
+
+    // method response Contact Response
+    private ContactResponse toContactResponse(Contact contact) {
         return ContactResponse.builder()
                 .id(contact.getId())
                 .firstName(contact.getFirstName())
@@ -43,5 +50,16 @@ public class ContactServiceImpl implements ContactService {
                 .phone(contact.getPhone())
                 .build(); // response
     }
+
+    @Transactional(readOnly = true) // readOnly() = true Bendera boolean yang dapat disetel ke true jika transaksi hanya dapat dibaca secara efektif, memungkinkan pengoptimalan yang sesuai saat runtime.
+    public ContactResponse get(User user, String id) {
+
+        Contact contact = contactRepository.findFirstByUserAndId(user, id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Contact not found"));
+
+        return toContactResponse(contact);
+
+    }
+
 
 }

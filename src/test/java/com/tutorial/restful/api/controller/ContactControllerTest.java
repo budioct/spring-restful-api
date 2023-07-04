@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tutorial.restful.api.dto.ContactResponse;
 import com.tutorial.restful.api.dto.CreateContactRequest;
 import com.tutorial.restful.api.dto.WebResponse;
+import com.tutorial.restful.api.entity.Contact;
 import com.tutorial.restful.api.entity.User;
 import com.tutorial.restful.api.repository.ContactRepository;
 import com.tutorial.restful.api.repository.UserRepository;
@@ -19,6 +20,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultHandler;
+
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.MockMvcBuilder.*;
@@ -169,7 +172,99 @@ class ContactControllerTest {
 
     }
 
+    @Test
+    void testGetContactNotFound() throws Exception {
 
+        mockMvc.perform(
+                get("/api/contacts/notfound")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .header("X-API-TOKEN", "contact")
+        ).andExpectAll(
+                status().isNotFound()
+        ).andDo(result -> {
+            WebResponse<ContactResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
 
+            Assertions.assertNotNull(response.getErrors());
+
+        });
+
+        /**
+         * Response Body = {"data":null,"errors":"Contact not found"}
+         */
+
+    }
+
+    @Test
+    void testGetContactUnauthorized() throws Exception {
+
+        // save contanct mula mula untuk sudah login dengan id user budhi
+        Contact contact = new Contact();
+        contact.setId(UUID.randomUUID().toString());
+
+        mockMvc.perform(
+                get("/api/contacts/" + contact.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+//                        .header("X-API-TOKEN", "contact")
+        ).andExpectAll(
+                status().isUnauthorized()
+        ).andDo(result -> {
+            WebResponse<ContactResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+
+            Assertions.assertNotNull(response.getErrors());
+
+        });
+
+        /**
+         * Response Body = {"data":null,"errors":"Unauthorized"}
+         */
+
+    }
+
+    @Test
+    void testGetContactSuccess() throws Exception {
+
+        // select user id
+        User user = userRepository.findById("budhi").orElseThrow();
+
+        // save contanct mula mula untuk sudah login dengan id user budhi
+        Contact contact = new Contact();
+        contact.setId(UUID.randomUUID().toString());
+        contact.setFirstName("Budhi");
+        contact.setLastName("Octaviansyah");
+        contact.setEmail("budioct@example.com");
+        contact.setPhone("08999912222");
+        contact.setUser(user); // relasi
+        contactRepository.save(contact);
+
+        mockMvc.perform(
+                get("/api/contacts/" + contact.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .header("X-API-TOKEN", "contact")
+        ).andExpectAll(
+                status().isOk()
+        ).andDo(result -> {
+            WebResponse<ContactResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+
+            Assertions.assertNull(response.getErrors());
+
+            Assertions.assertEquals(contact.getId(), response.getData().getId());
+            Assertions.assertEquals(contact.getFirstName(), response.getData().getFirstName());
+            Assertions.assertEquals(contact.getLastName(), response.getData().getLastName());
+            Assertions.assertEquals(contact.getEmail(), response.getData().getEmail());
+            Assertions.assertEquals(contact.getPhone(), response.getData().getPhone());
+
+        });
+
+        /**
+         * Response Body = {"data":{"id":"e34232bf-532a-4a06-a834-23e0ccad7e66","firstName":"Budhi","lastName":"Octaviansyah","email":"budioct@example.com","phone":"08999912222"},"errors":null}
+         */
+
+    }
 
 }

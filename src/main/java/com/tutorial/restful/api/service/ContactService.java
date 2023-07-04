@@ -8,4 +8,6 @@ public interface ContactService {
 
     ContactResponse create(User user, CreateContactRequest request);
 
+    ContactResponse get(User user, String id);
+
 }
