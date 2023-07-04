@@ -2,6 +2,7 @@ package com.tutorial.restful.api.service;
 
 import com.tutorial.restful.api.dto.ContactResponse;
 import com.tutorial.restful.api.dto.CreateContactRequest;
+import com.tutorial.restful.api.dto.UpdateContactRequest;
 import com.tutorial.restful.api.entity.Contact;
 import com.tutorial.restful.api.entity.User;
 import com.tutorial.restful.api.repository.ContactRepository;
@@ -59,6 +60,24 @@ public class ContactServiceImpl implements ContactService {
 
         return toContactResponse(contact);
 
+    }
+
+    @Transactional
+    public ContactResponse update(User user, UpdateContactRequest request) {
+
+        validationService.validate(request); // tangkap constraint validation
+
+        // cek apakah ada username dan id, jika ada kasih. jika tidak ada Exception dengan status
+        Contact contact = contactRepository.findFirstByUserAndId(user, request.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Contact not found"));
+
+        contact.setFirstName(request.getFirstName());
+        contact.setLastName(request.getLastName());
+        contact.setEmail(request.getEmail());
+        contact.setPhone(request.getPhone());
+        contactRepository.save(contact); // save DB
+
+        return toContactResponse(contact);
     }
 
 

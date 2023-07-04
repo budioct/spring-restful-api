@@ -2,6 +2,7 @@ package com.tutorial.restful.api.controller;
 
 import com.tutorial.restful.api.dto.ContactResponse;
 import com.tutorial.restful.api.dto.CreateContactRequest;
+import com.tutorial.restful.api.dto.UpdateContactRequest;
 import com.tutorial.restful.api.dto.WebResponse;
 import com.tutorial.restful.api.entity.User;
 import com.tutorial.restful.api.service.ContactService;
@@ -40,6 +41,23 @@ public class ContactController {
         return WebResponse.<ContactResponse>builder().data(contactResponse).build(); // return
 
     }
+
+    @PutMapping(
+            path = "/api/contacts/{contactId}",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public WebResponse<ContactResponse> update(User user,
+                                               @RequestBody UpdateContactRequest request,
+                                               @PathVariable(name = "contactId") String id){
+
+        request.setId(id); // binding dari request body
+        ContactResponse contactResponse = contactService.update(user, request); // ContactResponse update(User user, UpdateContactRequest request)
+
+        return WebResponse.<ContactResponse>builder().data(contactResponse).build(); // return
+    }
+
+
 
 
 }

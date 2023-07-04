@@ -2,14 +2,13 @@ package com.tutorial.restful.api.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tutorial.restful.api.dto.ContactResponse;
-import com.tutorial.restful.api.dto.CreateContactRequest;
-import com.tutorial.restful.api.dto.WebResponse;
+import com.tutorial.restful.api.dto.*;
 import com.tutorial.restful.api.entity.Contact;
 import com.tutorial.restful.api.entity.User;
 import com.tutorial.restful.api.repository.ContactRepository;
 import com.tutorial.restful.api.repository.UserRepository;
 import com.tutorial.restful.api.security.BCrypt;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,6 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 
+@Slf4j
 @SpringBootTest
 @AutoConfigureMockMvc
 class ContactControllerTest {
@@ -266,5 +266,134 @@ class ContactControllerTest {
          */
 
     }
+
+    @Test
+    void testUpdateContractBlank() throws Exception {
+
+        UpdateContactRequest request = new UpdateContactRequest();
+        request.setId(UUID.randomUUID().toString());
+        request.setFirstName("");
+        request.setLastName("");
+        request.setEmail("sdfklsd");
+        request.setPhone("");
+
+        mockMvc.perform(
+                put("/api/contacts/" + request.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .header("X-API-TOKEN", "contact")
+        ).andExpectAll(
+                status().isBadRequest()
+        ).andDo(new ResultHandler() {
+            @Override
+            public void handle(MvcResult result) throws Exception {
+                WebResponse<ContactResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                });
+
+                Assertions.assertNotNull(response.getErrors());
+
+            }
+        });
+
+        /**
+         * Response Body = {"data":null,"errors":"email: must be a well-formed email address, firstName: must not be blank"}
+         */
+
+    }
+
+    @Test
+    void testUpdateContractUnauthorized() throws Exception {
+
+        UpdateContactRequest request = new UpdateContactRequest();
+        request.setId(UUID.randomUUID().toString());
+        request.setFirstName("");
+        request.setLastName("");
+        request.setEmail("sdfklsd");
+        request.setPhone("");
+
+        mockMvc.perform(
+                put("/api/contacts/" + request.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+        ).andExpectAll(
+                status().isUnauthorized()
+        ).andDo(new ResultHandler() {
+            @Override
+            public void handle(MvcResult result) throws Exception {
+                WebResponse<ContactResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                });
+
+                Assertions.assertNotNull(response.getErrors());
+
+            }
+        });
+
+        /**
+         * Response Body = {"data":null,"errors":"Unauthorized"}
+         */
+
+    }
+
+    @Test
+    void testUpdateContactSuccess() throws Exception {
+
+        // select user id
+        User user = userRepository.findById("budhi").orElseThrow();
+
+        // save contanct mula mula untuk sudah login dengan id user budhi
+        Contact contact = new Contact();
+        contact.setId(UUID.randomUUID().toString());
+        contact.setUser(user); // relasi
+        contact.setFirstName("Budhi");
+        contact.setLastName("Octaviansyah");
+        contact.setEmail("budioct@example.com");
+        contact.setPhone("08999912222");
+        contactRepository.save(contact);
+
+        // update contact yang sebelumnya
+        UpdateContactRequest request = new UpdateContactRequest();
+        request.setFirstName("mali");
+        request.setLastName("madun");
+        request.setEmail("malimadun@example.com");
+        request.setPhone("1111155555");
+
+        mockMvc.perform(
+                put("/api/contacts/" + contact.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .header("X-API-TOKEN", "contact")
+                        .content(objectMapper.writeValueAsString(request))
+        ).andExpectAll(
+                status().isOk()
+        ).andDo(result -> {
+            WebResponse<ContactResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+
+            Assertions.assertNull(response.getErrors());
+
+            Assertions.assertEquals(request.getFirstName(), response.getData().getFirstName());
+            Assertions.assertEquals(request.getLastName(), response.getData().getLastName());
+            Assertions.assertEquals(request.getEmail(), response.getData().getEmail());
+            Assertions.assertEquals(request.getPhone(), response.getData().getPhone());
+
+            Assertions.assertTrue(contactRepository.existsById(response.getData().getId()));
+
+            log.info("Before id= {}", contact.getId());
+            log.info("After id: {}", response.getData().getId());
+
+        });
+
+        /**
+         * // before update
+         * Response Body = {"data":{"id":"b35f1ec8-a067-43a5-b62d-33398bbaecaa","firstName":"Budhi","lastName":"Octaviansyah","email":"budioct@example.com","phone":"08999912222"},"errors":null}
+         *
+         * // after update
+         * Response Body = {"data":{"id":"b35f1ec8-a067-43a5-b62d-33398bbaecaa","firstName":"mali","lastName":"madun","email":"malimadun@example.com","phone":"1111155555"},"errors":null}
+         */
+
+    }
+
 
 }
