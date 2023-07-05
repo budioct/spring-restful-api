@@ -31,8 +31,7 @@ public class ContactController {
 
     @GetMapping(
             path = "/api/contacts/{contactId}",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
+            consumes = MediaType.APPLICATION_JSON_VALUE
     )
     public WebResponse<ContactResponse> get(User user, @PathVariable(name = "contactId") String id){
 
@@ -55,6 +54,17 @@ public class ContactController {
         ContactResponse contactResponse = contactService.update(user, request); // ContactResponse update(User user, UpdateContactRequest request)
 
         return WebResponse.<ContactResponse>builder().data(contactResponse).build(); // return
+    }
+
+    @DeleteMapping(
+            path = "/api/contacts/{contactId}",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public WebResponse<String> delete(User user, @PathVariable(name = "contactId") String contactId){
+
+        contactService.delete(user, contactId); // void delete(User user, String contactId)
+
+        return WebResponse.<String>builder().data("OK").build(); // return
     }
 
 

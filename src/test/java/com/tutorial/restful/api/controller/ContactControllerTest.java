@@ -395,5 +395,95 @@ class ContactControllerTest {
 
     }
 
+    @Test
+    void testDeleteContractBlank() throws Exception {
+
+        mockMvc.perform(
+                delete("/api/contacts/asalasalan")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-API-TOKEN", "contact")
+        ).andExpectAll(
+                status().isNotFound()
+        ).andDo(new ResultHandler() {
+            @Override
+            public void handle(MvcResult result) throws Exception {
+                WebResponse<ContactResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                });
+
+                Assertions.assertNotNull(response.getErrors());
+
+            }
+        });
+
+        /**
+         * Response Body = {"data":null,"errors":"Contact not found"}
+         */
+
+    }
+
+    @Test
+    void testDeleteContractUnauthorized() throws Exception {
+
+        mockMvc.perform(
+                delete("/api/contacts/asalasalan")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+        ).andExpectAll(
+                status().isUnauthorized()
+        ).andDo(new ResultHandler() {
+            @Override
+            public void handle(MvcResult result) throws Exception {
+                WebResponse<ContactResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                });
+
+                Assertions.assertNotNull(response.getErrors());
+
+            }
+        });
+
+        /**
+         * Response Body = {"data":null,"errors":"Unauthorized"}
+         */
+
+    }
+
+    @Test
+    void testDeleteContactSuccess() throws Exception {
+
+        // select user id
+        User user = userRepository.findById("budhi").orElseThrow();
+
+        // save contanct mula mula untuk sudah login dengan id user budhi
+        Contact contact = new Contact();
+        contact.setId(UUID.randomUUID().toString());
+        contact.setUser(user); // relasi
+        contact.setFirstName("Budhi");
+        contact.setLastName("Octaviansyah");
+        contact.setEmail("budioct@example.com");
+        contact.setPhone("08999912222");
+        contactRepository.save(contact);
+
+        mockMvc.perform(
+                delete("/api/contacts/" + contact.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .header("X-API-TOKEN", "contact")
+        ).andExpectAll(
+                status().isOk()
+        ).andDo(result -> {
+            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+
+            Assertions.assertNull(response.getErrors());
+            Assertions.assertEquals("OK", response.getData());
+
+        });
+
+        /**
+         * Response Body = {"data":"OK","errors":null}
+         */
+
+    }
 
 }
