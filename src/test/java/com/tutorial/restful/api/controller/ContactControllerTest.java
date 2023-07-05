@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultHandler;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -482,6 +483,225 @@ class ContactControllerTest {
 
         /**
          * Response Body = {"data":"OK","errors":null}
+         */
+
+    }
+
+    @Test
+    void testSearchContactUnauthorized() throws Exception {
+
+        mockMvc.perform(
+                get("/api/contacts")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+        ).andExpectAll(
+                status().isUnauthorized()
+        ).andDo(new ResultHandler() {
+            @Override
+            public void handle(MvcResult result) throws Exception {
+                WebResponse<List<ContactResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                });
+
+                Assertions.assertNotNull(response.getErrors());
+
+            }
+        });
+
+        /**
+         * Response Body = {"data":null,"errors":"Unauthorized","paging":null}
+         */
+
+    }
+
+    @Test
+    void testSearchContactNotFound() throws Exception {
+
+        mockMvc.perform(
+                get("/api/contacts")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-API-TOKEN", "contact")
+        ).andExpectAll(
+                status().isOk()
+        ).andDo(new ResultHandler() {
+            @Override
+            public void handle(MvcResult result) throws Exception {
+                WebResponse<List<ContactResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                });
+
+                Assertions.assertNull(response.getErrors());
+
+                Assertions.assertEquals(0, response.getData().size());
+                Assertions.assertEquals(0, response.getPaging().getCurrentPage());
+                Assertions.assertEquals(0, response.getPaging().getTotalPage());
+                Assertions.assertEquals(10, response.getPaging().getSize());
+
+            }
+        });
+
+        /**
+         * Response Body = {"data":[],"errors":null,"paging":{"currentPage":0,"totalPage":0,"size":10}}
+         */
+
+    }
+
+    @Test
+    void testSearchContactSuccess() throws Exception {
+
+        // select user id, menandakan jika user sudah login dan mendapatkan token
+        User user = userRepository.findById("budhi").orElseThrow();
+
+        // mula mula kita sediakan data untuk di cari (search)
+        for (int i = 0; i < 100; i++) {
+            Contact contact = new Contact();
+            contact.setId(UUID.randomUUID().toString());
+            contact.setUser(user); // set user relasi
+            contact.setFirstName("Budhi" + i); // query param "name"
+            contact.setLastName("Octaviansyah"); // query param "name"
+            contact.setEmail("budhioct@example.com"); // query param "email"
+            contact.setPhone("08999912222"); // query param "phone"
+            contactRepository.save(contact);
+        }
+
+        mockMvc.perform(
+                get("/api/contacts")
+                        .queryParam("name", "Budhi")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-API-TOKEN", "contact")
+        ).andExpectAll(
+                status().isOk()
+        ).andDo(new ResultHandler() {
+            @Override
+            public void handle(MvcResult result) throws Exception {
+                WebResponse<List<ContactResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                });
+
+                Assertions.assertNull(response.getErrors());
+
+                Assertions.assertEquals(10, response.getData().size()); // data ada 10
+                Assertions.assertEquals(0, response.getPaging().getCurrentPage()); // sekarang halaman 1 (index di mulai dari 0)
+                Assertions.assertEquals(10, response.getPaging().getTotalPage()); // total halaman 10 dari 100 data
+                Assertions.assertEquals(10, response.getPaging().getSize()); // data setiap halaman ada 10 data
+
+            }
+        });
+
+        /**
+         * Response Body = {"data":[{"id":"026a85e6-534f-4ff1-bbc0-c301e0fe6391","firstName":"Budhi11","lastName":"Octaviansyah","email":"budhioct@example.com","phone":"08999912222"},{"id":"02e6ddf5-7029-4c7f-8bc4-edbf5dbe4032","firstName":"Budhi56","lastName":"Octaviansyah","email":"budhioct@example.com","phone":"08999912222"}],"errors":null,"paging":{"currentPage":0,"totalPage":10,"size":10}}
+         */
+
+        mockMvc.perform(
+                get("/api/contacts")
+                        .queryParam("name", "Octaviansyah")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-API-TOKEN", "contact")
+        ).andExpectAll(
+                status().isOk()
+        ).andDo(new ResultHandler() {
+            @Override
+            public void handle(MvcResult result) throws Exception {
+                WebResponse<List<ContactResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                });
+
+                Assertions.assertNull(response.getErrors());
+
+                Assertions.assertEquals(10, response.getData().size()); // data ada 10
+                Assertions.assertEquals(0, response.getPaging().getCurrentPage()); // sekarang halaman 1 (index di mulai dari 0)
+                Assertions.assertEquals(10, response.getPaging().getTotalPage()); // total halaman 10 dari 100 data
+                Assertions.assertEquals(10, response.getPaging().getSize()); // data setiap halaman ada 10 data
+
+            }
+        });
+
+        /**
+         * Response Body = {"data":[],"errors":null,"paging":{"currentPage":0,"totalPage":10,"size":10}}
+         */
+
+        mockMvc.perform(
+                get("/api/contacts")
+                        .queryParam("email", "@example.com")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-API-TOKEN", "contact")
+        ).andExpectAll(
+                status().isOk()
+        ).andDo(new ResultHandler() {
+            @Override
+            public void handle(MvcResult result) throws Exception {
+                WebResponse<List<ContactResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                });
+
+                Assertions.assertNull(response.getErrors());
+
+                Assertions.assertEquals(10, response.getData().size()); // data ada 10
+                Assertions.assertEquals(0, response.getPaging().getCurrentPage()); // sekarang halaman 1 (index di mulai dari 0)
+                Assertions.assertEquals(10, response.getPaging().getTotalPage()); // total halaman 10 dari 100 data
+                Assertions.assertEquals(10, response.getPaging().getSize()); // data setiap halaman ada 10 data
+
+            }
+        });
+
+        /**
+         * Response Body = {"data":[],"errors":null,"paging":{"currentPage":0,"totalPage":10,"size":10}}
+         */
+
+        mockMvc.perform(
+                get("/api/contacts")
+                        .queryParam("phone", "12222")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-API-TOKEN", "contact")
+        ).andExpectAll(
+                status().isOk()
+        ).andDo(new ResultHandler() {
+            @Override
+            public void handle(MvcResult result) throws Exception {
+                WebResponse<List<ContactResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                });
+
+                Assertions.assertNull(response.getErrors());
+
+                Assertions.assertEquals(10, response.getData().size()); // data ada 10
+                Assertions.assertEquals(0, response.getPaging().getCurrentPage()); // sekarang halaman 1 (index di mulai dari 0)
+                Assertions.assertEquals(10, response.getPaging().getTotalPage()); // total halaman 10 dari 100 data
+                Assertions.assertEquals(10, response.getPaging().getSize()); // data setiap halaman ada 10 data
+
+            }
+        });
+
+        /**
+         * Response Body = {"data":[],"errors":null,"paging":{"currentPage":0,"totalPage":10,"size":10}}
+         */
+
+        mockMvc.perform(
+                get("/api/contacts")
+                        .queryParam("phone", "12222")
+                        .queryParam("page", "1000")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-API-TOKEN", "contact")
+        ).andExpectAll(
+                status().isOk()
+        ).andDo(new ResultHandler() {
+            @Override
+            public void handle(MvcResult result) throws Exception {
+                WebResponse<List<ContactResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                });
+
+                Assertions.assertNull(response.getErrors());
+
+                Assertions.assertEquals(0, response.getData().size()); // data ada 10
+                Assertions.assertEquals(1000, response.getPaging().getCurrentPage()); // sekarang halaman 1000 (index di mulai dari 0)
+                Assertions.assertEquals(10, response.getPaging().getTotalPage()); // total halaman 10 dari 100 data
+                Assertions.assertEquals(10, response.getPaging().getSize()); // data setiap halaman ada 10 data
+
+            }
+        });
+
+        /**
+         * Response Body = {"data":[],"errors":null,"paging":{"currentPage":1000,"totalPage":10,"size":10}}
          */
 
     }
