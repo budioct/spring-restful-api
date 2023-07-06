@@ -6,6 +6,8 @@ show databases;
 
 use belajar_spring_restful_api;
 
+show tables;
+
 # membuat table users dengan username sebagai primary key dan token unique.. jadi supaya kita ingin user bisa login dimana saja kita
 # taruh session di table users, pada column token_expired_at
 CREATE TABLE users
@@ -34,7 +36,7 @@ CREATE TABLE contacts
     phone      VARCHAR(100),
     email      VARCHAR(100),
     PRIMARY KEY (id),
-    FOREIGN KEY fk_contacts_users (username) REFERENCES users (username)
+    FOREIGN KEY fk_users_contacts (username) REFERENCES users (username)
 ) Engine InnoDB;
 
 describe contacts;
@@ -52,13 +54,20 @@ CREATE TABLE addresses
     country     VARCHAR(100) NOT NULL,
     postal_code VARCHAR(10),
     PRIMARY KEY (id),
-    FOREIGN KEY fk_addresses_contacts (contact_id) REFERENCES contacts (id)
+    FOREIGN KEY fk_contacts_addresses (contact_id) REFERENCES contacts (id)
 ) ENGINE InnoDB;
 
 describe addresses;
 
+drop table users;
+drop table contacts;
+drop table addresses;
 
 select * from users;
 select * from contacts;
 select * from addresses;
 show warnings;
+
+delete from users;
+delete from contacts;
+delete from addresses;
