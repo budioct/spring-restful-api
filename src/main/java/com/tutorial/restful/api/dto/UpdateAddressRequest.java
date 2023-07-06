@@ -12,11 +12,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class CreateAddressRequest {
+public class UpdateAddressRequest {
 
     @JsonIgnore
     @NotBlank
     private String contactId;
+
+    @JsonIgnore
+    @NotBlank
+    private String addressId;
 
     @Size(max = 200)
     private String street;

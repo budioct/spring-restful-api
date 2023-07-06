@@ -2,6 +2,7 @@ package com.tutorial.restful.api.controller;
 
 import com.tutorial.restful.api.dto.AddressResponse;
 import com.tutorial.restful.api.dto.CreateAddressRequest;
+import com.tutorial.restful.api.dto.UpdateAddressRequest;
 import com.tutorial.restful.api.dto.WebResponse;
 import com.tutorial.restful.api.entity.User;
 import com.tutorial.restful.api.service.AddressService;
@@ -44,6 +45,24 @@ public class AddressController {
         return WebResponse.<AddressResponse>builder().data(addressResponse).build();
 
     }
+
+    @PutMapping(
+            path = "/api/contacts/{contactId}/address/{addressId}",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public WebResponse<AddressResponse> update(User user,
+                                               @RequestBody UpdateAddressRequest request,
+                                               @PathVariable(name = "contactId") String contactId,
+                                               @PathVariable(name = "addressId") String addressId) {
+        request.setContactId(contactId); // binding id ke DTO request
+        request.setAddressId(addressId);
+
+        AddressResponse addressResponse = addressService.update(user, request); // AddressResponse update(User user, UpdateAddressRequest request);
+
+        return WebResponse.<AddressResponse>builder().data(addressResponse).build();
+    }
+
 
 
 

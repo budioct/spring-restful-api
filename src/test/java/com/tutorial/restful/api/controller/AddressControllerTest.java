@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tutorial.restful.api.dto.AddressResponse;
 import com.tutorial.restful.api.dto.CreateAddressRequest;
+import com.tutorial.restful.api.dto.UpdateAddressRequest;
 import com.tutorial.restful.api.dto.WebResponse;
 import com.tutorial.restful.api.entity.Address;
 import com.tutorial.restful.api.entity.Contact;
@@ -12,6 +13,7 @@ import com.tutorial.restful.api.repository.AddressRepository;
 import com.tutorial.restful.api.repository.ContactRepository;
 import com.tutorial.restful.api.repository.UserRepository;
 import com.tutorial.restful.api.security.BCrypt;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +32,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 
+@Slf4j
 @SpringBootTest
 @AutoConfigureMockMvc
 class AddressControllerTest {
@@ -262,6 +265,134 @@ class AddressControllerTest {
 
         /**
          * Response Body = {"data":{"id":"addressId","street":"jl.manju mundur","city":"prembun","province":"jawa","country":"indonesia","postalCode":"15155"},"errors":null,"paging":null}
+         */
+    }
+
+    @Test
+    void testUpdateAddressNotBlank() throws Exception {
+
+        // select id contact
+        Contact contact = contactRepository.findById("contactId").orElseThrow();
+
+        Address address = new Address();
+        address.setId("addressId");
+        address.setContact(contact);
+        address.setStreet("jl.manju mundur");
+        address.setCity("prembun");
+        address.setProvince("jawa");
+        address.setCountry("indonesia");
+        address.setPostalCode("15155");
+        addressRepository.save(address);
+
+        UpdateAddressRequest request = new UpdateAddressRequest();
+        request.setCountry(""); // not blank constraint validation
+
+
+        mockMvc.perform(
+                put("/api/contacts/contactId/address/" + address.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .header("X-API-TOKEN", "contact")
+        ).andExpectAll(
+                status().isBadRequest()
+        ).andDo(result -> {
+            WebResponse<AddressResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+
+            Assertions.assertNotNull(response.getErrors());
+
+        });
+
+        /**
+         * Response Body = {"data":null,"errors":"country: must not be blank","paging":null}
+         */
+    }
+
+    @Test
+    void testUpdateAddressUnauthorized() throws Exception {
+
+        // select id contact
+        Contact contact = contactRepository.findById("contactId").orElseThrow();
+
+        Address address = new Address();
+        address.setId("addressId");
+        address.setContact(contact);
+        address.setStreet("jl.manju mundur");
+        address.setCity("prembun");
+        address.setProvince("jawa");
+        address.setCountry("indonesia");
+        address.setPostalCode("15155");
+        addressRepository.save(address);
+
+        mockMvc.perform(
+                put("/api/contacts/contactId/address/" + address.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+        ).andExpectAll(
+                status().isUnauthorized()
+        ).andDo(result -> {
+            WebResponse<AddressResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+
+            Assertions.assertNotNull(response.getErrors());
+
+        });
+
+        /**
+         * Response Body = {"data":null,"errors":"Unauthorized","paging":null}
+         */
+    }
+
+    @Test
+    void testUpdateAddressSuccess() throws Exception {
+
+        // select id contact
+        Contact contact = contactRepository.findById("contactId").orElseThrow();
+
+        Address address = new Address();
+        address.setId("addressId");
+        address.setContact(contact);
+        address.setStreet("jl.manju mundur");
+        address.setCity("prembun");
+        address.setProvince("jawa");
+        address.setCountry("indonesia");
+        address.setPostalCode("15155");
+        addressRepository.save(address);
+
+        UpdateAddressRequest request = new UpdateAddressRequest();
+        request.setStreet("rubah jl.manju");
+        request.setCity("rubah prembun");
+        request.setProvince("rubah jawa");
+        request.setCountry("rubah indonesia");
+        request.setPostalCode("rbah 15155"); // max 10 char
+
+        mockMvc.perform(
+                put("/api/contacts/contactId/address/" + address.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .header("X-API-TOKEN", "contact")
+        ).andExpectAll(
+                status().isOk()
+        ).andDo(result -> {
+            WebResponse<AddressResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+
+            Assertions.assertNull(response.getErrors());
+
+            Assertions.assertEquals(request.getStreet(), response.getData().getStreet());
+            Assertions.assertEquals(request.getCity(), response.getData().getCity());
+            Assertions.assertEquals(request.getProvince(), response.getData().getProvince());
+            Assertions.assertEquals(request.getCountry(), response.getData().getCountry());
+            Assertions.assertEquals(request.getPostalCode(), response.getData().getPostalCode());
+
+            Assertions.assertTrue(addressRepository.existsById(response.getData().getId()));
+
+        });
+
+        /**
+         * Response Body = {"street":"rubah jl.manju","city":"rubah prembun","province":"rubah jawa","country":"rubah indonesia","postalCode":"rbah 15155"}
          */
     }
 

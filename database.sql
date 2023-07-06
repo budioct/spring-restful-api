@@ -61,3 +61,4 @@ describe addresses;
 select * from users;
 select * from contacts;
 select * from addresses;
+show warnings;
