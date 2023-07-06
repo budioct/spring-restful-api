@@ -13,4 +13,6 @@ public interface AddressService {
 
     AddressResponse update(User user, UpdateAddressRequest request);
 
+    void delete(User user, String contactId, String addressId);
+
 }

@@ -396,5 +396,106 @@ class AddressControllerTest {
          */
     }
 
+    @Test
+    void testDeleteAddressUnauthorized() throws Exception {
+
+        // select id contact
+        Contact contact = contactRepository.findById("contactId").orElseThrow();
+
+        Address address = new Address();
+        address.setId("addressId");
+        address.setContact(contact);
+        address.setStreet("jl.manju mundur");
+        address.setCity("prembun");
+        address.setProvince("jawa");
+        address.setCountry("indonesia");
+        address.setPostalCode("15155");
+        addressRepository.save(address);
+
+        mockMvc.perform(
+                delete("/api/contacts/contactId/address/" + address.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+        ).andExpectAll(
+                status().isUnauthorized()
+        ).andDo(result -> {
+            WebResponse<AddressResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+
+            Assertions.assertNotNull(response.getErrors());
+
+        });
+
+        /**
+         * Response Body = {"data":null,"errors":"Unauthorized","paging":null}
+         */
+    }
+
+    @Test
+    void testDeleteAddressIdNotIsFound() throws Exception {
+
+        mockMvc.perform(
+                delete("/api/contacts/contactId/address/IDasalasalan")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-API-TOKEN", "contact")
+        ).andExpectAll(
+                status().isNotFound()
+        ).andDo(result -> {
+            WebResponse<AddressResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+
+            Assertions.assertNotNull(response.getErrors());
+
+        });
+
+        /**
+         * // jika id contact salah akan response
+         * Response Body = {"data":null,"errors":"Contact is not found","paging":null}
+         * // jika id address salah akan response
+         * Response Body = {"data":null,"errors":"Address is not found","paging":null}
+         */
+    }
+
+    @Test
+    void testDeleteAddressSuccess() throws Exception {
+
+        // select id contact
+        Contact contact = contactRepository.findById("contactId").orElseThrow();
+
+        // alih alih kita save di awal
+        Address address = new Address();
+        address.setId("addressId");
+        address.setContact(contact);
+        address.setStreet("jl.manju mundur");
+        address.setCity("prembun");
+        address.setProvince("jawa");
+        address.setCountry("indonesia");
+        address.setPostalCode("15155");
+        addressRepository.save(address);
+
+        mockMvc.perform(
+                delete("/api/contacts/contactId/address/" + address.getId())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-API-TOKEN", "contact")
+        ).andExpectAll(
+                status().isOk()
+        ).andDo(result -> {
+            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+
+            Assertions.assertNull(response.getErrors());
+            Assertions.assertEquals("OK", response.getData());
+
+            Assertions.assertFalse(addressRepository.existsById(address.getId()));
+
+        });
+
+        /**
+         * Response Body = {"data":"OK","errors":null,"paging":null}
+         */
+    }
+
 
 }

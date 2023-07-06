@@ -19,7 +19,7 @@ import java.util.UUID;
 
 @Slf4j
 @Service
-public class AddressServiceImpl implements AddressService{
+public class AddressServiceImpl implements AddressService {
 
     @Autowired
     private ContactRepository contactRepository;
@@ -46,7 +46,7 @@ public class AddressServiceImpl implements AddressService{
         address.setProvince(request.getProvince());
         address.setCountry(request.getCountry());
         address.setPostalCode(request.getPostalCode());
-        addressRepository.save(address);
+        addressRepository.save(address); // proses DB
 
         return toAddressResponse(address);
     }
@@ -87,12 +87,30 @@ public class AddressServiceImpl implements AddressService{
         address.setProvince(request.getProvince());
         address.setCountry(request.getCountry());
         address.setPostalCode(request.getPostalCode());
-        addressRepository.save(address);
+        addressRepository.save(address); // proses DB
 
         return toAddressResponse(address);
     }
 
-    private AddressResponse toAddressResponse(Address address){
+    @Transactional
+    public void delete(User user, String contactId, String addressId) {
+
+        // user many contact
+        Contact contact = contactRepository.findFirstByUserAndId(user, contactId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Contact is not found"));
+
+        // contact many address
+        Address address = addressRepository.findFirstByContactAndId(contact, addressId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Address is not found"));
+
+        log.info("contact id= {}", contact.getId());
+        log.info("address id= {}", address.getId());
+
+        addressRepository.delete(address); // proses DB
+
+    }
+
+    private AddressResponse toAddressResponse(Address address) {
         return AddressResponse.builder()
                 .id(address.getId())
                 .street(address.getStreet())
@@ -102,7 +120,6 @@ public class AddressServiceImpl implements AddressService{
                 .postalCode(address.getPostalCode())
                 .build();
     }
-
 
 
 }
