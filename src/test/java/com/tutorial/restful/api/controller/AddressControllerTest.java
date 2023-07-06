@@ -23,6 +23,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -494,6 +495,62 @@ class AddressControllerTest {
 
         /**
          * Response Body = {"data":"OK","errors":null,"paging":null}
+         */
+    }
+
+    @Test
+    void listAddressNotFound() throws Exception {
+        mockMvc.perform(
+                get("/api/contacts/IDsalah/address")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-API-TOKEN", "contact")
+        ).andExpectAll(
+                status().isNotFound()
+        ).andDo(result -> {
+            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+            assertNotNull(response.getErrors());
+        });
+
+        /**
+         * Response Body = {"data":null,"errors":"Contact is not found","paging":null}
+         */
+
+    }
+
+    @Test
+    void listAddressSuccess() throws Exception {
+        Contact contact = contactRepository.findById("contactId").orElseThrow();
+
+        for (int i = 0; i < 5; i++) {
+            Address address = new Address();
+            address.setId("addressId-" + i);
+            address.setContact(contact);
+            address.setStreet("jl.manju mundur");
+            address.setCity("prembun");
+            address.setProvince("jawa");
+            address.setCountry("indonesia");
+            address.setPostalCode("15155");
+            addressRepository.save(address);
+        }
+
+        mockMvc.perform(
+                get("/api/contacts/contactId/address")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-API-TOKEN", "contact")
+        ).andExpectAll(
+                status().isOk()
+        ).andDo(result -> {
+            WebResponse<List<AddressResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+            assertNull(response.getErrors());
+            assertEquals(5, response.getData().size());
+        });
+
+        /**
+         * Response Body = {"data":[{"id":"addressId-0","street":"jl.manju mundur","city":"prembun","province":"jawa","country":"indonesia","postalCode":"15155"},{"id":"addressId-1","street":"jl.manju mundur","city":"prembun","province":"jawa","country":"indonesia","postalCode":"15155"},{"id":"addressId-2","street":"jl.manju mundur","city":"prembun","province":"jawa","country":"indonesia","postalCode":"15155"},{"id":"addressId-3","street":"jl.manju mundur","city":"prembun","province":"jawa","country":"indonesia","postalCode":"15155"},{"id":"addressId-4","street":"jl.manju mundur","city":"prembun","province":"jawa","country":"indonesia","postalCode":"15155"}],"errors":null,"paging":null}
          */
     }
 

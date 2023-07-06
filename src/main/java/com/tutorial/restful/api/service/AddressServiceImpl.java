@@ -15,7 +15,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -108,6 +111,34 @@ public class AddressServiceImpl implements AddressService {
 
         addressRepository.delete(address); // proses DB
 
+    }
+
+    @Transactional(readOnly = true)
+    public List<AddressResponse> listAddress(User user, String contactId) {
+
+        Contact contact = contactRepository.findFirstByUserAndId(user, contactId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Contact is not found"));
+
+        List<Address> list = addressRepository.findAllByContact(contact); // karena return value List<T>, kita perlu return entity Address ke AddressResponse. kita perlu menggunakan operasi Function<R,T> dari lambda
+
+        // anonymouse method.
+        // Function<T, R>
+        // R apply(T t);
+        return list.stream().map(new Function<Address, AddressResponse>() {
+            @Override
+            public AddressResponse apply(Address address) {
+                return toAddressResponse(address); // konversi return dari List<Address> ke List<AddressResponse>
+            }
+        }).collect(Collectors.toList());
+
+        // lambda
+        // return list.stream().map(address -> {
+        //    return toAddressResponse(address); // konversi return dari List<Address> ke List<AddressResponse>
+        // }).collect(Collectors.toList());
+
+        // method reference
+        // konversi return dari List<Address> ke List<AddressResponse>
+        //return list.stream().map(this::toAddressResponse).collect(Collectors.toList());
     }
 
     private AddressResponse toAddressResponse(Address address) {
