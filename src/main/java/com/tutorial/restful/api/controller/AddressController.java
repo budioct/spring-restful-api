@@ -30,5 +30,21 @@ public class AddressController {
         return WebResponse.<AddressResponse>builder().data(addressResponse).build(); // return
     }
 
+    @GetMapping(
+            path = "/api/contacts/{contactId}/address/{addressId}",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public WebResponse<AddressResponse> get(User user,
+                                            @PathVariable(name = "contactId") String contactId,
+                                            @PathVariable(name = "addressId") String addressId
+    ){
+
+        AddressResponse addressResponse = addressService.get(user, contactId, addressId); // AddressResponse get(User user, String contactId, String addressId);
+
+        return WebResponse.<AddressResponse>builder().data(addressResponse).build();
+
+    }
+
+
 
 }
